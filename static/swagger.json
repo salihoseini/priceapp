@@ -1,209 +1,165 @@
 {
     "openapi": "3.0.0",
     "info": {
-      "title": "Price Tracker API",
-      "description": "API for fetching real-time and historical price data for various assets.",
-      "version": "1.0.0"
+        "title": "Price Tracker API",
+        "description": "API for fetching real-time and historical price data for various assets.",
+        "version": "1.0.0"
     },
     "paths": {
-      "/api/prices/overview": {
-        "get": {
-          "summary": "Get Lightweight Price Overview",
-          "description": "Provides a lightweight, sorted list of all tracked assets with their average price and 24-hour change. Ideal for populating a main dashboard.",
-          "responses": {
-            "200": {
-              "description": "A list of asset overviews.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "symbol": {"type": "string", "example": "EGC"},
-                        "fa_name": {"type": "string", "example": "سکه امامی"},
-                        "unit": {"type": "string", "example": "تومان"},
-                        "sort_order": {"type": "integer", "example": 1},
-                        "average_price": {"type": "number", "example": 43500000},
-                        "change_24h": {"type": "number", "example": 1.25}
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/api/prices/detail/{symbol}": {
-        "get": {
-          "summary": "Get Detailed Prices for a Symbol",
-          "description": "Provides detailed price data for a single asset, including its average, min/max, unit, and a list of all contributing sources with their last update time.",
-          "parameters": [
-            {
-              "name": "symbol",
-              "in": "path",
-              "required": true,
-              "description": "The symbol of the asset (e.g., EGC, USD, G18).",
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Detailed price data for the specified symbol.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                        "symbol": {"type": "string", "example": "EGC"},
-                        "unit": {"type": "string", "example": "تومان"},
-                        "average_price": {"type": "number", "example": 43500000},
-                        "low_price": {"type": "number", "example": 43450000},
-                        "high_price": {"type": "number", "example": 43550000},
-                        "sources": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "source": {"type": "string", "example": "daric-egc"},
-                                    "fa_name": {"type": "string", "example": "سکه امامی"},
-                                    "price": {"type": "number", "example": 43550000},
-                                    "last_updated": {"type": "string", "format": "date-time", "example": "2025-09-14T15:30:00Z"}
+        "/api/prices/overview": {
+            "get": {
+                "summary": "Get Price Overview",
+                "description": "Provides a lightweight overview of the latest prices for all tracked assets. Ideal for a main dashboard.",
+                "responses": {
+                    "200": {
+                        "description": "A list of asset overviews.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "symbol": { "type": "string", "example": "EGC" },
+                                            "fa_name": { "type": "string", "example": "سکه امامی" },
+                                            "unit": { "type": "string", "example": "تومان" },
+                                            "average_price": { "type": "number", "example": 45150000.5 },
+                                            "change_24h": { "type": "number", "example": 1.25 }
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
-                  }
                 }
-              }
-            },
-            "404": {
-                "description": "Symbol not found or has no active sources."
             }
-          }
-        }
-      },
-      "/api/prices/history/{symbol}": {
-        "get": {
-          "summary": "Get Price History for a Symbol",
-          "description": "Provides queryable price history for a single asset. Data is averaged by the specified interval. Defaults to the last 7 days at a 1-hour interval.",
-          "parameters": [
-            {
-              "name": "symbol",
-              "in": "path",
-              "required": true,
-              "description": "The symbol of the asset to retrieve history for.",
-              "schema": {
-                "type": "string"
-              }
-            },
-            {
-              "name": "from",
-              "in": "query",
-              "description": "The start date for the history range (inclusive). Format: YYYY-MM-DD.",
-              "required": false,
-              "schema": {
-                "type": "string",
-                "format": "date",
-                "example": "2025-09-01"
-              }
-            },
-            {
-              "name": "to",
-              "in": "query",
-              "description": "The end date for the history range (inclusive). Format: YYYY-MM-DD.",
-              "required": false,
-              "schema": {
-                "type": "string",
-                "format": "date",
-                "example": "2025-09-14"
-              }
-            },
-            {
-              "name": "interval",
-              "in": "query",
-              "description": "The interval to group data by (e.g., '1m', '5m', '1h', '4h', '1d', '1w').",
-              "required": false,
-              "schema": {
-                "type": "string",
-                "default": "1h",
-                "example": "4h"
-              }
+        },
+        "/api/prices/detail/{symbol}": {
+            "get": {
+                "summary": "Get Asset Price Details",
+                "description": "Provides detailed pricing information for a single asset, including data from all sources and comparative analysis.",
+                "parameters": [
+                    {
+                        "name": "symbol",
+                        "in": "path",
+                        "required": true,
+                        "description": "The symbol of the asset (e.g., EGC, USDT, USD).",
+                        "schema": { "type": "string" }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detailed information for the requested asset.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "symbol": { "type": "string", "example": "USDT" },
+                                        "unit": { "type": "string", "example": "تومان" },
+                                        "average_price": { "type": "number", "example": 61550.0 },
+                                        "low_price": { "type": "number", "example": 61500.0 },
+                                        "high_price": { "type": "number", "example": 61600.0 },
+                                        "sources": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "source": { "type": "string", "example": "nobitex" },
+                                                    "fa_name": { "type": "string", "example": "تتر" },
+                                                    "price": { "type": "number", "example": 61500.0 },
+                                                    "last_updated": { "type": "string", "format": "date-time", "example": "2025-09-15T10:30:00Z" },
+                                                    "display_url": { "type": "string", "example": "nobitex.ir" },
+                                                    "label": { "type": "string", "example": "Crypto Exchange" },
+                                                    "comparison": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "is_highest": { "type": "boolean", "example": false },
+                                                            "is_lowest": { "type": "boolean", "example": true },
+                                                            "diff_from_avg_percent": { "type": "number", "example": -0.081 }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": { "description": "Asset symbol not found." }
+                }
             }
-          ],
-          "responses": {
-            "200": {
-              "description": "A list of historical price points.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "time": {
-                                "type": "integer", 
-                                "format": "int64",
-                                "description": "The Unix timestamp for the beginning of the interval.",
-                                "example": 1757884800
-                            },
-                            "price": {
-                                "type": "number", 
-                                "example": 43210000
+        },
+        "/api/prices/history/{symbol}": {
+            "get": {
+                "summary": "Get Price History",
+                "description": "Provides historical price data for an asset, aggregated into dynamic intervals.",
+                "parameters": [
+                    { "name": "symbol", "in": "path", "required": true, "description": "Asset symbol.", "schema": { "type": "string" } },
+                    { "name": "from", "in": "query", "description": "Start date (YYYY-MM-DD). Defaults to 7 days ago.", "schema": { "type": "string", "format": "date" } },
+                    { "name": "to", "in": "query", "description": "End date (YYYY-MM-DD). Defaults to today.", "schema": { "type": "string", "format": "date" } },
+                    { "name": "interval", "in": "query", "description": "Time interval (e.g., '1m', '5m', '1h', '4h', '1d', '1w'). Defaults to '1h'.", "schema": { "type": "string" } }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A list of historical price points.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "time": { "type": "integer", "description": "Unix timestamp for the start of the interval.", "example": 1757836800 },
+                                            "price": { "type": "number", "example": 61234.5 }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
-                  }
                 }
-              }
-            },
-            "400": {
-                "description": "Invalid parameter format (e.g., bad date or interval)."
             }
-          }
-        }
-      },
-      "/api/stats": {
-        "get": {
-          "summary": "Get Market Highlights",
-          "description": "Provides the top gainer and top loser of the day based on 24-hour percentage change.",
-          "responses": {
-            "200": {
-              "description": "Top gainer and loser statistics.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "top_gainer": {
-                        "type": "object",
-                        "properties": {
-                            "symbol": {"type": "string", "example": "EGC"},
-                            "fa_name": {"type": "string", "example": "سکه امامی"},
-                            "average_price": {"type": "number", "example": 43500000},
-                            "change_24h": {"type": "number", "example": 1.25}
+        },
+        "/api/stats": {
+            "get": {
+                "summary": "Get Market Highlights",
+                "description": "Provides the top gainer and loser of the last 24 hours.",
+                "responses": {
+                    "200": {
+                        "description": "Market highlights.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "top_gainer": {
+                                            "type": "object",
+                                            "nullable": true,
+                                            "properties": {
+                                                "symbol": { "type": "string", "example": "EGC" },
+                                                "fa_name": { "type": "string", "example": "سکه امامی" },
+                                                "change_24h": { "type": "number", "example": 2.5 }
+                                            }
+                                        },
+                                        "top_loser": {
+                                            "type": "object",
+                                            "nullable": true,
+                                            "properties": {
+                                                "symbol": { "type": "string", "example": "USD" },
+                                                "fa_name": { "type": "string", "example": "دلار آمریکا" },
+                                                "change_24h": { "type": "number", "example": -0.5 }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
-                      },
-                      "top_loser": {
-                        "type": "object",
-                        "properties": {
-                            "symbol": {"type": "string", "example": "USD"},
-                            "fa_name": {"type": "string", "example": "دلار آمریکا"},
-                            "average_price": {"type": "number", "example": 65000},
-                            "change_24h": {"type": "number", "example": -0.5}
-                        }
-                      }
                     }
-                  }
                 }
-              }
             }
-          }
         }
-      }
     }
 }
 

@@ -1,37 +1,53 @@
-# /price.fiai.ir/init_db.py
-
 import os
-from app import create_app, db
+import argparse
+from app import create_app
+from extensions import db
 from seed_apis import seed_data # Import the seeding function
 
-# Get the absolute path of the directory where this script is
-basedir = os.path.abspath(os.path.dirname(__file__))
-db_file = os.path.join(basedir, 'local_dev.db')
-
-def initialize_database():
+def initialize_database(reset=False):
     """
-    Initializes the database by creating all tables and then seeding it
-    with the initial API source data. Deletes the old database file if it exists.
+    Initializes the database.
+    - Creates tables if they don't exist.
+    - Seeds API source data.
+    - Optionally resets the entire database if the --reset flag is used.
     """
-    if os.path.exists(db_file):
-        print("Deleting existing database...")
-        os.remove(db_file)
-
-    # We need to create an app context to interact with the database
     app = create_app('config.DevelopmentConfig')
     with app.app_context():
-        print("Creating all database tables...")
-        # The following import is necessary to register the models with SQLAlchemy
-        # before create_all() is called.
-        import database
-        db.create_all()
-        print("Database tables created.")
-        
-        # Now, seed the database with the API sources
-        seed_data()
-        
-        print("\nDatabase initialized and seeded successfully!")
+        db_path = app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')
 
-if __name__ == '__main__':
-    initialize_database()
+        if reset:
+            if os.path.exists(db_path):
+                print(f"--- Resetting database: Deleting {db_path}... ---")
+                os.remove(db_path)
+            else:
+                print(f"--- Database file not found at {db_path}. Nothing to delete. ---")
+        else:
+            print("--- Initializing database safely (existing data will be preserved)... ---")
+
+        print("Ensuring all database tables exist...")
+        db.create_all()
+        print("Tables created/ensured successfully.")
+
+        # Always run the seeder to add new sources or update existing ones.
+        # This is a non-destructive operation.
+        seed_data(db)
+
+        print("\nDatabase initialization complete!")
+        if reset:
+            print("The database was fully reset.")
+        else:
+            print("Existing price data was preserved.")
+
+if __name__ == "__main__":
+    # Set up command-line argument parsing
+    parser = argparse.ArgumentParser(description="Initialize or reset the application database.")
+    parser.add_argument(
+        '--reset',
+        action='store_true', # Creates a flag, e.g., `python init_db.py --reset`
+        help="Deletes the existing database file before initializing. WARNING: ALL DATA WILL BE LOST."
+    )
+    args = parser.parse_args()
+
+    # Call the function with the value of the --reset flag
+    initialize_database(reset=args.reset)
 

@@ -112,8 +112,8 @@ class PriceService:
     @staticmethod
     def get_price_detail_for_symbol(symbol):
         """
-        [REFACTORED] Fetches detailed price information for a single symbol.
-        First validates the symbol exists, then fetches the price data.
+        [ENRICHED] Fetches detailed price information for a single symbol,
+        including labels, links, and comparative analysis data.
         """
         active_sources_for_symbol = ApiSource.query.filter_by(
             symbol=symbol,
@@ -133,7 +133,9 @@ class PriceService:
             PriceHistory.price,
             ApiSource.fa_name,
             ApiSource.unit,
-            ApiSource.last_updated
+            ApiSource.last_updated,
+            ApiSource.display_url,
+            ApiSource.label
         ).join(
             latest_entry_sq,
             and_(
@@ -161,26 +163,32 @@ class PriceService:
                 'sources': []
             }
 
-        min_price = float('inf')
-        max_price = float('-inf')
-        total_price = 0
-        count = 0
+        min_price = min(entry.price for entry in price_entries)
+        max_price = max(entry.price for entry in price_entries)
+        total_price = sum(entry.price for entry in price_entries)
+        count = len(price_entries)
         unit = price_entries[0].unit
+        average_price = total_price / count if count > 0 else 0
+        
         sources = []
-
         for entry in price_entries:
-            min_price = min(min_price, entry.price)
-            max_price = max(max_price, entry.price)
-            total_price += entry.price
-            count += 1
+            diff_from_avg = 0
+            if average_price > 0:
+                diff_from_avg = ((entry.price - average_price) / average_price) * 100
+
             sources.append({
                 'source': entry.source_name,
                 'fa_name': entry.fa_name,
                 'price': entry.price,
-                'last_updated': entry.last_updated.isoformat() if entry.last_updated else None
+                'last_updated': entry.last_updated.isoformat() if entry.last_updated else None,
+                'display_url': entry.display_url,
+                'label': entry.label,
+                'comparison': {
+                    'is_highest': entry.price == max_price,
+                    'is_lowest': entry.price == min_price,
+                    'diff_from_avg_percent': diff_from_avg
+                }
             })
-        
-        average_price = total_price / count if count > 0 else 0
         
         return {
             'symbol': symbol,
@@ -313,6 +321,8 @@ class AdminService:
                 'fa_name': form_data.get('fa_name'),
                 'unit': form_data.get('unit'),
                 'url': form_data.get('url'),
+                'display_url': form_data.get('display_url'),
+                'label': form_data.get('label'),
                 'method': form_data.get('method', 'GET'),
                 'headers': json.loads(form_data.get('headers')) if form_data.get('headers') else None,
                 'payload': json.loads(form_data.get('payload')) if form_data.get('payload') else None,
